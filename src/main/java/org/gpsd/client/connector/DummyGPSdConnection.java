@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gpsd.client.GPSd;
+import org.gpsd.client.message.Devices;
 import org.gpsd.client.message.GPSdMessage;
 import org.gpsd.client.message.Poll;
 import org.gpsd.client.message.TPV;
@@ -49,7 +50,6 @@ public class DummyGPSdConnection implements Runnable, IGPSdConnection {
 
 	@Override
 	public void send(String msg) throws IOException {
-		System.out.println("SENDING: " + msg);
 		GPSdMessage response = null;
 		
 		if (msg.startsWith("?WATCH")) {
@@ -72,6 +72,11 @@ public class DummyGPSdConnection implements Runnable, IGPSdConnection {
 			v.release = "Dummy gpsd";
 			
 			response = v;
+		} else if (msg.startsWith("?DEVICE")) {
+			Devices d = new Devices();
+			d.setTime(System.currentTimeMillis());
+			
+			response = d;
 		}
 		
 		if (response != null) {

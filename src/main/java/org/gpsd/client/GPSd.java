@@ -66,7 +66,7 @@ public class GPSd {
 
 	public void messageReceived(String message) {
 		try {
-			System.out.println("Msg received: " + message);
+			//System.out.println("Msg received: " + message);
 			Class<? extends GPSdMessage> msgClass = GPSdMessage.parseAndGetClassForMessage(message);
 			GPSdMessage gpsdMsg = jsonMapper.readValue(message, msgClass);
 			notifyListeners(gpsdMsg);
@@ -105,7 +105,7 @@ public class GPSd {
 		else {
 			ResponseLock responseLock = responseManager.pop(gpsdMsg.getClass());
 			if (responseLock == null) {
-				System.out.println("Got response without a waiting lock, discarding");
+				System.out.println("Got response without a waiting lock, discarding. Type was: " + gpsdMsg.getClass().getSimpleName());
 				return;
 			}
 			
@@ -153,6 +153,7 @@ public class GPSd {
 	
 	private class SyncMessageResponseManager {
 		
+		private Object listLock = new Object();
 		private Map<Class<? extends GPSdMessage>, List<ResponseLock>> responseLocks;
 		
 		public SyncMessageResponseManager() {
@@ -161,24 +162,32 @@ public class GPSd {
 		
 		public ResponseLock push(Class<? extends GPSdMessage> expectedResponseClass) {
 			ResponseLock lock = new ResponseLock();
-			getLockList(expectedResponseClass).add(lock);
+			synchronized (listLock) {
+				getLockList(expectedResponseClass).add(lock);
+			}
 			return lock;
 		}
 		
 		public ResponseLock pop(Class<? extends GPSdMessage> expectedResponseClass) {
-			if (getLockList(expectedResponseClass).isEmpty())
+			if (getLockList(expectedResponseClass).isEmpty()) {
+				System.out.println("The locklist for " + expectedResponseClass.getSimpleName() + " is empty, returning null");
 				return null;
+			}
 			
-			return getLockList(expectedResponseClass).remove(0);
+			synchronized (listLock) {
+				return getLockList(expectedResponseClass).remove(0);
+			}
 		}
 		
 		private List<ResponseLock> getLockList(Class<? extends GPSdMessage> clazz) {
-			if (responseLocks.containsKey(clazz))
-				return responseLocks.get(clazz);
-			
-			List<ResponseLock> newList = new ArrayList<ResponseLock>();
-			responseLocks.put(clazz, newList);
-			return newList;
+			synchronized (listLock) {
+				if (responseLocks.containsKey(clazz))
+					return responseLocks.get(clazz);
+				
+				List<ResponseLock> newList = new ArrayList<ResponseLock>();
+				responseLocks.put(clazz, newList);
+				return newList;
+			}
 		}
 	}
 
@@ -191,6 +200,9 @@ public class GPSd {
 
 		public void setResponse(GPSdMessage response) {
 			this.response = response;
+			if (response == null) {
+				System.out.println("Warning response is null in ResponseLock");
+			}
 		}
 		
 	}

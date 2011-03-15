@@ -9,8 +9,7 @@ import java.util.Map;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.gpsd.client.connector.DummyGPSdConnection;
-import org.gpsd.client.connector.IGPSdConnection;
+import org.gpsd.client.connector.GPSdConnection;
 import org.gpsd.client.message.ATT;
 import org.gpsd.client.message.Devices;
 import org.gpsd.client.message.GPSdError;
@@ -21,42 +20,75 @@ import org.gpsd.client.message.SKY;
 import org.gpsd.client.message.TPV;
 import org.gpsd.client.message.Version;
 import org.gpsd.client.message.Watch;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class GPSd {
 
 	private String host;
 	private int port;
-	private IGPSdConnection gpsdConnection;
+	
+	private GPSdConnection gpsdConnection;
+	
 	private GPSdListenerManager listenerManager;
 	private ObjectMapper jsonMapper = new ObjectMapper();
 	private SyncMessageResponseManager responseManager;
+	private TPV lastKnownTPV;
+	
+	public GPSd() {
+		this("localhost", 2947);
+	}
 	
 	public GPSd(String host, int port) {
+		System.out.println("Creating GPSd");
 		this.host = host;
 		this.port = port;
 		listenerManager = new GPSdListenerManager();
 		responseManager = new SyncMessageResponseManager();
 	}
 
+	@Autowired
+	public void setGpsdConnection(GPSdConnection gpsdConnection) {
+		this.gpsdConnection = gpsdConnection;
+		init();
+	}
+
+	private void init() {
+		try {
+			System.out.println("Trying to connect...");
+			connect();
+			
+			Watch w = new Watch();
+			w.enable = true;
+			w.json = true;
+			w.raw = 0;
+			System.out.println("Starting watch...");
+			Watch resp = startGPSdWatch(w);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public Version getGPSdVersion() throws JsonGenerationException, JsonMappingException, IOException {
 		return sendAndWaitForResponse("VERSION", null, Version.class);
 	}
 	
-	public Watch startWatch(Watch watch) throws JsonGenerationException, JsonMappingException, IOException {
+	public Watch startGPSdWatch(Watch watch) throws JsonGenerationException, JsonMappingException, IOException {
 		return sendAndWaitForResponse("WATCH", watch, Watch.class);
 	}
 	
-	public Poll poll() throws JsonGenerationException, JsonMappingException, IOException {
+	public Poll getGPSdPoll() throws JsonGenerationException, JsonMappingException, IOException {
 		return sendAndWaitForResponse("POLL", null, Poll.class);
 	}
 	
-	public Devices listDevices() throws JsonGenerationException, JsonMappingException, IOException {
+	public Devices listGPSdDevices() throws JsonGenerationException, JsonMappingException, IOException {
 		return sendAndWaitForResponse("DEVICE", null, Devices.class);
 	}
 	
 	public void connect() throws IOException {
 //		gpsdConnection = new GPSdConnection(this);
-		gpsdConnection = new DummyGPSdConnection(this);
+//		gpsdConnection = new DummyGPSdConnection(this);
 		gpsdConnection.connect(host, port);
 	}
 	
@@ -64,6 +96,10 @@ public class GPSd {
 		gpsdConnection.disconnect();
 	}
 
+	public TPV getLastKnownTPV() {
+		return lastKnownTPV;
+	}
+	
 	public void messageReceived(String message) {
 		try {
 			//System.out.println("Msg received: " + message);
@@ -97,6 +133,8 @@ public class GPSd {
 		
 		else if (gpsdMsg instanceof TPV) {
 			listenerManager.onTPV((TPV)gpsdMsg);
+			lastKnownTPV = (TPV)gpsdMsg;
+			System.out.println("Updated TPV...");
 		}
 		
 		/*
@@ -132,7 +170,7 @@ public class GPSd {
 			} catch (InterruptedException e) {
 			}
 		}
-		return (T)lock.getResponse();
+		return expectedResponseClass.cast(lock.getResponse());
 	}
 	
 	private ResponseLock sendRequest(String cmd, GPSdMessage msg, Class<? extends GPSdMessage> expectedResponseClass) throws JsonGenerationException, JsonMappingException, IOException {
@@ -215,7 +253,7 @@ public class GPSd {
 		w.enable = true;
 		w.json = true;
 		w.raw = 0;
-		Watch resp = gpsd.startWatch(w);
+		Watch resp = gpsd.startGPSdWatch(w);
 		System.out.println("Watch resp time: " + resp.getTime());
 		
 		Version v = gpsd.getGPSdVersion();

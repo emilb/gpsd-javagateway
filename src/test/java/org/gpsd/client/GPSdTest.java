@@ -19,8 +19,8 @@ public class GPSdTest extends TestCase {
 	@Test
 	public void testMultiThreadedRequestResponse() throws IOException {
 		
-		int noofThreads = 20;
-		int noofRequestsPerThread = 250;
+		int noofThreads = 10;
+		int noofRequestsPerThread = 100;
 		GPSd gpsd = new GPSd(null, 1233);
 		gpsd.connect();
 		
@@ -51,6 +51,10 @@ public class GPSdTest extends TestCase {
 			}
 		}
 		
+		
+		for (Requester r : threads) {
+			Assert.assertEquals(0, r.noofFailed);
+		}
 	}
 	
 	private class Requester implements Runnable {
@@ -59,6 +63,7 @@ public class GPSdTest extends TestCase {
 		int threadNo;
 		GPSd gpsd;
 		boolean done = false;
+		int noofFailed = 0;
 		
 		public Requester(int noofRequests, GPSd gpsd, int threadNo) {
 			this.noofRequests = noofRequests;
@@ -77,20 +82,20 @@ public class GPSdTest extends TestCase {
 				try {
 					switch (operation) {
 					case 0:
-						System.out.println("Thread " + threadNo + " requesting version");
+						System.out.println("Thread " + threadNo + " requesting version [" + counter + "]");
 						result = gpsd.getGPSdVersion();
 						System.out.println("Thread " + threadNo + " got version");
 						break;
 
 					case 1:
-						System.out.println("Thread " + threadNo + " requesting poll");
-						result = gpsd.poll();
+						System.out.println("Thread " + threadNo + " requesting poll [" + counter + "]");
+						result = gpsd.getGPSdPoll();
 						System.out.println("Thread " + threadNo + " got poll");
 						break;
 					
 					case 2:
-						System.out.println("Thread " + threadNo + " requesting devices");
-						result = gpsd.listDevices();
+						System.out.println("Thread " + threadNo + " requesting devices [" + counter + "]");
+						result = gpsd.listGPSdDevices();
 						System.out.println("Thread " + threadNo + " got devices");
 						break;
 						
@@ -99,20 +104,23 @@ public class GPSdTest extends TestCase {
 						w.enable = true;
 						w.json = true;
 						w.raw = 0;
-						System.out.println("Thread " + threadNo + " requesting watch");
-						result = gpsd.startWatch(w);
+						System.out.println("Thread " + threadNo + " requesting watch [" + counter + "]");
+						result = gpsd.startGPSdWatch(w);
 						System.out.println("Thread " + threadNo + " got watch");
 						break;
 					default:
 						break;
 					}
 					
-					Assert.assertNotNull(result);
+					if (result == null) {
+						noofFailed++;
+						System.out.println("Thread " + threadNo + " got a NULL response");
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				} 
 				counter++;
-				tryToSleep((long)(RandomUtils.nextDouble() * 150L));
+				tryToSleep((long)(RandomUtils.nextDouble() * 10L));
 			}
 			done = true;
 		}

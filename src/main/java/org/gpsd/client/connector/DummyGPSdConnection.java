@@ -17,7 +17,7 @@ import org.gpsd.client.message.Version;
 import org.gpsd.client.message.Watch;
 import org.gpsd.client.type.TPVMode;
 
-public class DummyGPSdConnection implements Runnable, IGPSdConnection {
+public class DummyGPSdConnection implements Runnable, GPSdConnection {
 
 	private GPSd gpsd;
 	private boolean running = false;
@@ -96,7 +96,7 @@ public class DummyGPSdConnection implements Runnable, IGPSdConnection {
 				}
 				
 				gpsd.messageReceived(response);
-				tryToSleep(950);
+				tryToSleep(10);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

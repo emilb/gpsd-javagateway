@@ -14,7 +14,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.gpsd.client.GPSd;
 
-public class GPSdConnection implements Runnable {
+public class GPSdConnection implements Runnable, IGPSdConnection {
 
 	private GPSd gpsd;
 	private SocketChannel socketChannel;
@@ -27,6 +27,10 @@ public class GPSdConnection implements Runnable {
 		this.gpsd = gpsd;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gpsd.client.connector.IGPSdConnection#connect(java.lang.String, int)
+	 */
+	@Override
 	public void connect(String host, int port) throws IOException {
 
 		socketChannel = SocketChannel.open();
@@ -44,6 +48,10 @@ public class GPSdConnection implements Runnable {
 		t.start();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gpsd.client.connector.IGPSdConnection#disconnect()
+	 */
+	@Override
 	public void disconnect() {
 		running = false;
 
@@ -54,10 +62,18 @@ public class GPSdConnection implements Runnable {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gpsd.client.connector.IGPSdConnection#isRunning()
+	 */
+	@Override
 	public boolean isRunning() {
 		return running;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gpsd.client.connector.IGPSdConnection#send(java.lang.String)
+	 */
+	@Override
 	public void send(String msg) throws IOException {
 		ByteBuffer buf = ByteBuffer.allocate(512);
 		buf.clear();

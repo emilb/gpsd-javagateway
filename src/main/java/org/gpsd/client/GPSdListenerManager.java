@@ -6,6 +6,7 @@ import org.gpsd.client.message.ATT;
 import org.gpsd.client.message.GPSdError;
 import org.gpsd.client.message.GST;
 import org.gpsd.client.message.SKY;
+import org.gpsd.client.message.TPV;
 
 public class GPSdListenerManager extends ArrayList<GPSdListener> implements
 		GPSdListener {
@@ -40,4 +41,10 @@ public class GPSdListenerManager extends ArrayList<GPSdListener> implements
 		}
 	}
 
+	@Override
+	public void onTPV(TPV tpv) {
+		for (GPSdListener listener : this) {
+			listener.onTPV(tpv);
+		}
+	}
 }

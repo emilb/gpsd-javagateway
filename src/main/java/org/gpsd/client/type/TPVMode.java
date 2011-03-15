@@ -7,5 +7,9 @@ public enum TPVMode {
 	NO_MODE,
 	NO_FIX,
 	TWO_DIMENSIONAL,
-	THREE_DIMENSIONAL
+	THREE_DIMENSIONAL;
+	
+	public String toString() {
+		return this.ordinal() + "";
+	}
 }

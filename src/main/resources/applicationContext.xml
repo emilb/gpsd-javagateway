@@ -21,6 +21,8 @@
 		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd">
 
 	<context:component-scan base-package="se.panamach.web.rest" />
+	<context:component-scan base-package="se.panamach.services" />
 	<context:component-scan base-package="org.gpsd.client" />
 
+	<bean class="org.gpsd.client.connector.factory.GPSdConnectionFactoryTcp"/>
 </beans>

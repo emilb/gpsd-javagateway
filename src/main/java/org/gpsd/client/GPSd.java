@@ -10,6 +10,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.gpsd.client.connector.GPSdConnection;
+import org.gpsd.client.connector.factory.GPSdConnectionFactory;
 import org.gpsd.client.message.ATT;
 import org.gpsd.client.message.Devices;
 import org.gpsd.client.message.GPSdError;
@@ -29,12 +30,13 @@ public class GPSd {
 	private String host;
 	private int port;
 	
+	@Autowired
+	private GPSdConnectionFactory connectionFactory;
 	private GPSdConnection gpsdConnection;
 	
 	private GPSdListenerManager listenerManager;
 	private ObjectMapper jsonMapper = new ObjectMapper();
 	private SyncMessageResponseManager responseManager;
-	private TPV lastKnownTPV;
 	
 	public GPSd() {
 		this("localhost", 2947);
@@ -48,15 +50,26 @@ public class GPSd {
 		responseManager = new SyncMessageResponseManager();
 	}
 
-	@Autowired
-	public void setGpsdConnection(GPSdConnection gpsdConnection) {
-		this.gpsdConnection = gpsdConnection;
-		init();
+	public void connect() throws IOException {
+		gpsdConnection.connect(host, port);
 	}
-
+	
+	public void disconnect() {
+		gpsdConnection.disconnect();
+	}
+	
 	private void init() {
 		try {
+			if (gpsdConnection != null) {
+				gpsdConnection.disconnect();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		try {
 			System.out.println("Trying to connect...");
+			gpsdConnection = connectionFactory.getGPSdConnection(this);
 			connect();
 			
 			Watch w = new Watch();
@@ -84,20 +97,6 @@ public class GPSd {
 	
 	public Devices listGPSdDevices() throws JsonGenerationException, JsonMappingException, IOException {
 		return sendAndWaitForResponse("DEVICE", null, Devices.class);
-	}
-	
-	public void connect() throws IOException {
-//		gpsdConnection = new GPSdConnection(this);
-//		gpsdConnection = new DummyGPSdConnection(this);
-		gpsdConnection.connect(host, port);
-	}
-	
-	public void disconnect() {
-		gpsdConnection.disconnect();
-	}
-
-	public TPV getLastKnownTPV() {
-		return lastKnownTPV;
 	}
 	
 	public void messageReceived(String message) {
@@ -133,8 +132,6 @@ public class GPSd {
 		
 		else if (gpsdMsg instanceof TPV) {
 			listenerManager.onTPV((TPV)gpsdMsg);
-			lastKnownTPV = (TPV)gpsdMsg;
-			System.out.println("Updated TPV...");
 		}
 		
 		/*

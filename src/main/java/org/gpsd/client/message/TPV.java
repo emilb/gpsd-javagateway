@@ -52,6 +52,7 @@ public class TPV extends GPSdMessage {
 	public double lon;
 	public double alt;
 	public double epx;
+	public double epy;
 	public double epv;
 	public double track;
 	public double speed;

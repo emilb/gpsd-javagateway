@@ -13,10 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.gpsd.client.GPSd;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-@Service
 public class GPSdTcpConnection implements Runnable, GPSdConnection {
 
 	private GPSd gpsd;
@@ -26,10 +23,20 @@ public class GPSdTcpConnection implements Runnable, GPSdConnection {
 	private CharsetDecoder asciiDecoder;
 	private boolean running = false;
 
-	@Autowired
 	public GPSdTcpConnection(GPSd gpsd) {
 		this.gpsd = gpsd;
 	}
+
+	
+	@Override
+	public boolean isConnected() {
+		try {
+			return socketChannel.isConnected() && isRunning();
+		} catch (Exception e) {}
+		
+		return false;
+	}
+
 
 	/* (non-Javadoc)
 	 * @see org.gpsd.client.connector.IGPSdConnection#connect(java.lang.String, int)

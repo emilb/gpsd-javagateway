@@ -31,6 +31,11 @@ public class DummyGPSdConnection implements Runnable, GPSdConnection {
 	}
 
 	@Override
+	public boolean isConnected() {
+		return running;
+	}
+
+	@Override
 	public void connect(String host, int port) throws IOException {
 
 		running = true;

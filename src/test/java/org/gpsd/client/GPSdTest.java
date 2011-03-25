@@ -4,15 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
 import org.apache.commons.lang.math.RandomUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.gpsd.client.message.GPSdMessage;
 import org.gpsd.client.message.Watch;
 import org.junit.Test;
-
-import junit.framework.Assert;
-import junit.framework.TestCase;
 
 public class GPSdTest extends TestCase {
 

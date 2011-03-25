@@ -2,7 +2,7 @@ package se.panamach.util.converter;
 
 import org.gpsd.client.message.TPV;
 
-import se.panamach.services.gps.TimePositionVelocity;
+import se.panamach.services.gps.type.TimePositionVelocity;
 
 public class TPVConverter {
 

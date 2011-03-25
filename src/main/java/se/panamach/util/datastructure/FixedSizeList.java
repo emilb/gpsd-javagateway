@@ -74,6 +74,13 @@ public class FixedSizeList<T> extends ArrayList<T> {
 		
 		return super.set(index, element);
 	}
+
+	public T getFirstElement() {
+		if (this.size() == 0)
+			return null;
+		
+		return get(0);
+	}
 	
 	
 }

@@ -125,6 +125,8 @@ public class DummyGPSdConnection implements Runnable, GPSdConnection {
 	
 	private String getRandomTPV() throws JsonGenerationException, JsonMappingException, IOException {
 		TPV t = new TPV();
+		t.lon = RandomUtils.nextDouble();
+		t.lat = RandomUtils.nextDouble();
 		t.climb = RandomUtils.nextDouble();
 		t.alt = RandomUtils.nextDouble();
 		t.device = "/dev/ttyUSB0";

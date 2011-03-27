@@ -20,9 +20,16 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
 		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd">
 
+	<task:annotation-driven scheduler="myScheduler"/>
+	<task:scheduler id="myScheduler" pool-size="10"/>
+
 	<context:component-scan base-package="se.panamach.web.rest" />
 	<context:component-scan base-package="se.panamach.services" />
 	<context:component-scan base-package="org.gpsd.client" />
 
-	<bean class="org.gpsd.client.connector.factory.GPSdConnectionFactoryTcp"/>
+	<bean class="org.gpsd.client.connector.factory.GPSdConnectionFactorySimulation"/>
+<!-- 	<bean class="org.gpsd.client.connector.factory.GPSdConnectionFactoryTcp"/> -->
+	
+	<bean scope="session" class="se.panamach.gwt.GpsApplication"/>
+	 
 </beans>

@@ -2,6 +2,7 @@ package se.panamach.web.rest;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -22,9 +23,12 @@ public class DistanceResource {
 	PositionHistoryService positionHistory;
 	
 	@GET
-	@Path("/currentPosition/to/@lang/@long")
+	@Path("/to/{lat}/{long}")
 	@Produces({MediaType.APPLICATION_XML})
-	public DistanceVector getDistanceAndDirectionFromCurrentPositionTo(double lat, double lon) {
+	public DistanceVector getDistanceAndDirectionFromCurrentPositionTo(
+			@PathParam("lat") double lat, 
+			@PathParam("long") double lon) {
+		
 		Location destination = new Location();
 		destination.longitude = lon;
 		destination.latitude = lat;
@@ -35,6 +39,7 @@ public class DistanceResource {
 		dv.destination = new GpsData(lat, lon);
 		dv.distanceToDestination = tdv.distance;
 		dv.trackToDestination = tdv.track;
+		dv.closing = tdv.closing;
 		
 		return dv;
 	}

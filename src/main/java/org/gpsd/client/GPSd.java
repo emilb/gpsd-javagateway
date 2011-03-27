@@ -21,14 +21,23 @@ import org.gpsd.client.message.SKY;
 import org.gpsd.client.message.TPV;
 import org.gpsd.client.message.Version;
 import org.gpsd.client.message.Watch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GPSd {
 
+	private static Marker logMarkerGPSdMessage = MarkerFactory.getMarker("GPSD_MESSAGE");
+	private static Logger log = LoggerFactory.getLogger(GPSd.class);
+	
 	private String host;
 	private int port;
+	
+	private long timeForLastGPSdMessage = 0;
 	
 	@Autowired
 	private GPSdConnectionFactory connectionFactory;
@@ -50,6 +59,17 @@ public class GPSd {
 		responseManager = new SyncMessageResponseManager();
 	}
 
+	public boolean isConnected() {
+		if (gpsdConnection == null)
+			return false;
+		
+		if (gpsdConnection.isConnected()) {
+			return ((System.currentTimeMillis() - timeForLastGPSdMessage) < 2000);
+		}
+		
+		return false;
+	}
+	
 	public void connect() throws IOException {
 		gpsdConnection.connect(host, port);
 	}
@@ -58,7 +78,7 @@ public class GPSd {
 		gpsdConnection.disconnect();
 	}
 	
-	private void init() {
+	public void initializeConnection() {
 		try {
 			if (gpsdConnection != null) {
 				gpsdConnection.disconnect();
@@ -77,7 +97,7 @@ public class GPSd {
 			w.json = true;
 			w.raw = 0;
 			System.out.println("Starting watch...");
-			Watch resp = startGPSdWatch(w);
+			startGPSdWatch(w);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -100,8 +120,9 @@ public class GPSd {
 	}
 	
 	public void messageReceived(String message) {
+		log.info(logMarkerGPSdMessage, message);
+		timeForLastGPSdMessage = System.currentTimeMillis();
 		try {
-			//System.out.println("Msg received: " + message);
 			Class<? extends GPSdMessage> msgClass = GPSdMessage.parseAndGetClassForMessage(message);
 			GPSdMessage gpsdMsg = jsonMapper.readValue(message, msgClass);
 			notifyListeners(gpsdMsg);
@@ -240,36 +261,5 @@ public class GPSd {
 			}
 		}
 		
-	}
-	
-	public static void main(String[] args) throws Exception {
-		GPSd gpsd = new GPSd("localhost", 2947);
-		gpsd.connect();
-		
-		Watch w = new Watch();
-		w.enable = true;
-		w.json = true;
-		w.raw = 0;
-		Watch resp = gpsd.startGPSdWatch(w);
-		System.out.println("Watch resp time: " + resp.getTime());
-		
-		Version v = gpsd.getGPSdVersion();
-		System.out.println("Gpsd version: " + v.release + " " + v.proto_major);
-		
-		Thread t = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException ie) {
-						System.out.println("interrupted");
-					}
-				}
-				
-			}
-		});
-		t.start();
 	}
 }

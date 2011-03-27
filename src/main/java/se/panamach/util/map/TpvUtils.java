@@ -83,4 +83,7 @@ public class TpvUtils {
 		return tpvRange.overlapsRange(dateRange);
 	}
 	
+	public static double convertMeterPerSecondToKmPerHour(double mps) {
+		 return mps * 3.6d;
+	}
 }

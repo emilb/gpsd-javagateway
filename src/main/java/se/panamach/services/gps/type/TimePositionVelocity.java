@@ -4,7 +4,7 @@ package se.panamach.services.gps.type;
 
 public class TimePositionVelocity extends Location {
 
-	public double time;
+	public long time;
 	
 	// Estimated timestamp error (%f, seconds, 95% confidence)
 	public double estimatedTimestampError;

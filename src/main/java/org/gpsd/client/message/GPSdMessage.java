@@ -26,7 +26,7 @@ public abstract class GPSdMessage {
 	}
 
 	public void setTime(long time) {
-		this.time = time;
+		this.time = time*1000;
 	}
 
 	private static Map<String, Class<? extends GPSdMessage>> identifierToClass = new HashMap<String, Class<? extends GPSdMessage>>();

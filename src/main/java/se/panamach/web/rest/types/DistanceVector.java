@@ -21,7 +21,7 @@ public class DistanceVector {
 	@XmlElement(name = "distanceToDestination")
 	public double distanceToDestination;
 	
-	@XmlElement(name = "track")
+	@XmlElement(name = "trackToDestination")
 	public double trackToDestination;
 	
 	public DistanceVector() {}

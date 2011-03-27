@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import se.panamach.services.gps.type.Location;
@@ -24,6 +25,10 @@ public class PositionHistoryService {
 	private static long ONE_HOUR = 60*60*1000;
 	
 	public PositionHistoryService() {
+		reset();
+	}
+	
+	public void reset() {
 		lastHourPositions = new FixedSizeList<TimePositionVelocity>(3600);
 		everyFiveMinutePosition = new FixedSizeList<TimePositionVelocity>(100);
 		everyHourPosition = new FixedSizeList<TimePositionVelocity>(100);
@@ -70,27 +75,51 @@ public class PositionHistoryService {
 		return new ArrayList<TimePositionVelocity>();
 	}
 
+	public List<TimePositionVelocity> getTravelHistory(double minDistanceBetweenLogs) {
+		if (CollectionUtils.isEmpty(lastHourPositions))
+			return new ArrayList<TimePositionVelocity>();
+		
+		List<TimePositionVelocity> result = new ArrayList<TimePositionVelocity>();
+		
+		TimePositionVelocity lastAddedTpv = null;
+		for (TimePositionVelocity tpv : lastHourPositions) {
+			if (lastAddedTpv == null) {
+				result.add(0, tpv);
+				continue;
+			}
+				
+			if (MapUtils.getDistanceBetween(lastAddedTpv, tpv) > minDistanceBetweenLogs) {
+				result.add(tpv);
+				lastAddedTpv = tpv;
+			}
+		}
+		
+		return result;
+	}
+	
 	public TimeDistanceVector getDistanceAndVectorTo(Location loc) {
 		TimeDistanceVector tdv = new TimeDistanceVector();
 		tdv.destination = loc;
 		tdv.setLocation(getLastKnownPosition());
 		
 		tdv.distance = MapUtils.getDistanceBetween(tdv, tdv.destination);
-		tdv.track = MapUtils.getDirectionBetween(tdv, tdv.destination);
+		tdv.track = MapUtils.getStartBearing(tdv, tdv.destination);
+		tdv.closing = false;
 		
-		boolean directionDecided = false;
-		int ix = lastHourPositions.size() - 2; // TODO: Handle case where only one reading
-		while (!directionDecided) {
-			
+		// If the last 5 readings indicate a general closer position 
+		// we are moving closer.
+		if (lastHourPositions.size() > 5) {
+			int ix = lastHourPositions.size() - 5;
+			TimePositionVelocity tpv = lastHourPositions.get(ix);
+			double distance = MapUtils.getDistanceBetween(tpv, loc);
+			if ((distance - tdv.distance) > 100) // At least 100 meters closer
+				tdv.closing = true;
 		}
-		
-		tdv.closing = 
-		
 		return tdv;
 	}
 	
 	public void registerPosition(TimePositionVelocity tpv) {
-		registerPosition(tpv, 0, lastHourPositions);
+		registerPosition(tpv, 800, lastHourPositions);
 		registerPosition(tpv, FIVE_MINUTES, everyFiveMinutePosition);
 		registerPosition(tpv, ONE_HOUR, everyHourPosition);
 	}

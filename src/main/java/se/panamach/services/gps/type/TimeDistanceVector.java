@@ -4,7 +4,7 @@ package se.panamach.services.gps.type;
 public class TimeDistanceVector extends Location {
 
 	// The estimated time of arrival to destination
-	public double estimatedArrivalTime;
+	public long estimatedArrivalTime;
 	
 	// The destination
 	public Location destination;

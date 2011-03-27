@@ -8,6 +8,13 @@ public class Location {
 	// Longitude in degrees: +/- signifies North/South
 	public double longitude;
 	
+	public Location() {}
+	
+	public Location(double latitude, double longitude) {
+		this.latitude = latitude;
+		this.longitude = longitude;
+	}
+
 	public void setLocation(Location loc) {
 		this.latitude = loc.latitude;
 		this.longitude = loc.longitude;

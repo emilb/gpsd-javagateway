@@ -32,7 +32,8 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	private List<String> simulationData = new ArrayList<String>();
 	private DecimalFormat df = new DecimalFormat("#.##");
 	int lineNumber = 0;
-	int timeFactor = 1;
+	int timeFactor = 10;
+	long currentSimulationTime = System.currentTimeMillis();
 	
 	public GPSdSimulationConnection(GPSd gpsd) {
 		this.gpsd = gpsd;
@@ -112,6 +113,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 				
 				gpsd.messageReceived(response);
 				tryToSleep((long)(1000.0 / (double)timeFactor));
+				currentSimulationTime += 1000L;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -183,7 +185,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		startPos += 7;
 		
 		sb.append(StringUtils.substring(line, 0, startPos));
-		sb.append(System.currentTimeMillis() / 1000).append(".000");
+		sb.append(currentSimulationTime / 1000).append(".000");
 		sb.append(StringUtils.substring(line, startPos+14, line.length()));
 		return sb.toString();
 	}
@@ -192,7 +194,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		simulationData = new ArrayList<String>();
 		lineNumber = 0;
 		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(GPSdSimulationConnection.class.getResourceAsStream("/gps_simulation.log")));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(GPSdSimulationConnection.class.getResourceAsStream("/birkacruises_gps_simulation.log")));
 		try {
 			String line;
 			while ((line = reader.readLine()) != null) {

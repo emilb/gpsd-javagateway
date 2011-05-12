@@ -30,6 +30,4 @@
 	<bean class="org.gpsd.client.connector.factory.GPSdConnectionFactorySimulation"/>
 <!-- 	<bean class="org.gpsd.client.connector.factory.GPSdConnectionFactoryTcp"/> -->
 	
-	<bean scope="session" class="se.panamach.gwt.GpsApplication"/>
-	 
 </beans>

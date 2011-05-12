@@ -6,6 +6,17 @@ public class TimePositionVelocity extends Location {
 
 	public long time;
 	
+	public TimePositionVelocity() {}
+	
+	public TimePositionVelocity(double latitude, double longitude) {
+		this.latitude = latitude;
+		this.longitude = longitude;
+	}
+	
+	public TimePositionVelocity(Location l) {
+		setLocation(l);
+	}
+	
 	// Estimated timestamp error (%f, seconds, 95% confidence)
 	public double estimatedTimestampError;
 	

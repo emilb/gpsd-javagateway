@@ -38,4 +38,7 @@ public class Location {
 		return true;
 	}
 	
+	public String toString() {
+		return latitude + ", " + longitude;
+	}
 }

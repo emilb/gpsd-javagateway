@@ -106,6 +106,7 @@ public class PositionHistoryService {
 				lastAddedTpv = tpv;
 			}
 		}
+		
 		return result;
 	}
 	
@@ -116,18 +117,21 @@ public class PositionHistoryService {
 		// Find any pauses longer than 30 minutes and truncate from there
 		// A pause is defined as no movement larger than 1000 meters during a period of 30 minutes
 		int index = history.size() - 1;
-		int delta = 30*60;
+		int delta = 60;
 		int deltaIndex = index - delta < 0 ? 0 : index - delta;
 		
 		while (deltaIndex > 0) {
 			List<TimePositionVelocity> sublist = history.subList(deltaIndex, index);
 			double distanceTraveled = MapUtils.getDistanceTraveled(sublist);
+			
 			if (distanceTraveled < 1000) {
-				return history.subList(index, history.size() - 1);
+				return history.subList(deltaIndex, history.size() - 1);
 			}
+
 			index -= 1;
+			deltaIndex = index - delta < 0 ? 0 : index - delta;
 		}
-	
+		
 		return history;
 	}
 	

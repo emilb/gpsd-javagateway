@@ -103,6 +103,10 @@ public class GPSd {
 		}
 	}
 	
+	public GPSdConnection getGPSdConnection() {
+		return gpsdConnection;
+	}
+	
 	public Version getGPSdVersion() throws JsonGenerationException, JsonMappingException, IOException {
 		return sendAndWaitForResponse("VERSION", null, Version.class);
 	}

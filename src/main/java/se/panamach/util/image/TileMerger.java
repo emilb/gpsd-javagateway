@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import org.apache.commons.collections.CollectionUtils;
 
 import se.panamach.services.gps.type.Location;
+import se.panamach.services.gps.type.TimePositionVelocity;
 
 
 // 59.63910, 18.23618
@@ -161,23 +162,38 @@ public class TileMerger {
 		g2d.setColor(Color.magenta);
 		Point2D locationPosition = transformFromLocationToPixelPoint(location);
 		g2d.fill(new Ellipse2D.Double(locationPosition.getX()-7, locationPosition.getY()-7, 15, 15));
+		
+		if (location instanceof TimePositionVelocity) {
+			TimePositionVelocity tpv = (TimePositionVelocity) location;
+			g2d.translate(locationPosition.getX(), locationPosition.getY());
+			g2d.rotate(Math.toRadians(tpv.track));
+			
+			BasicStroke pathStroke = new BasicStroke(1, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER);
+			Color c = new Color(0, 0, 0, 0.5f);
+			g2d.setColor(c);
+			g2d.setStroke(pathStroke);
+			g2d.drawLine(0, 0, 0, -20);
+			g2d.drawLine(0, -20, -4, -16);
+			g2d.drawLine(0, -20, 4, -16);
+			
+			g2d.rotate(Math.toRadians(tpv.track * -1));
+			g2d.translate(locationPosition.getX() * -1, locationPosition.getY() * -1);
+		}
 	}
 	
 	private void markPath(Graphics2D g2d) {
 		Path2D path2d = new Path2D.Double();
 		BasicStroke pathStroke = new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 		
-		boolean first = true;
+		// Start from current position
+		Point2D pStart = transformFromLocationToPixelPoint(location);
+		path2d.moveTo(pStart.getX(), pStart.getY());
+		
 		for (Location loc : path) {
 			Point2D p = transformFromLocationToPixelPoint(loc);
-			if (first)
-				path2d.moveTo(p.getX(), p.getY());
-			else
-				path2d.lineTo(p.getX(), p.getY());
-			
-			first = false;
+			path2d.lineTo(p.getX(), p.getY());
 		}
-		
+
 		Shape strokeShape = pathStroke.createStrokedShape(path2d);
 		float alpha = 0.5f;
 		Color c = new Color(0, 0, 1, alpha);

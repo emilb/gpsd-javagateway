@@ -47,7 +47,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	@Override
 	public void connect(String host, int port) throws IOException {
 
-		populatSimulationData();
+		populateSimulationData();
 		
 		running = true;
 		t = new Thread(this);
@@ -190,7 +190,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		return sb.toString();
 	}
 	
-	private void populatSimulationData() {
+	private void populateSimulationData() {
 		simulationData = new ArrayList<String>();
 		lineNumber = 0;
 		
@@ -204,5 +204,9 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void setTimeFactor(int timefactor) {
+		this.timeFactor = timefactor;
 	}
 }

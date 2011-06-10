@@ -49,9 +49,9 @@
 			<OnMismatch>DENY</OnMismatch>
 		</filter>
 
-		<file>${log.path}/gpsd.log</file>
+		<file>${log.path}/path.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${log.path}/_gpsd.log-%d{yyyy-MM-dd}.log
+			<fileNamePattern>${log.path}/_path.log-%d{yyyy-MM-dd}.log
 			</fileNamePattern>
 			<maxHistory>90</maxHistory>
 		</rollingPolicy>
@@ -66,7 +66,7 @@
 	<root level="ERROR">
 		<appender-ref ref="FILE" />
 		<appender-ref ref="STDOUT" />
-		<!-- <appender-ref ref="GPSD_LOG" /> -->
+		<appender-ref ref="GPSD_LOG" />
 	</root>
 
 </configuration>

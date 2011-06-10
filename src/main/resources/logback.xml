@@ -1,6 +1,22 @@
 <configuration>
 
 	<contextName>${project.name}</contextName>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
+			by default -->
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<evaluator> <!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+				<expression>marker == null</expression>
+			</evaluator>
+			<OnMatch>ACCEPT</OnMatch>
+			<OnMismatch>DENY</OnMismatch>
+		</filter>
+		<encoder>
+			<pattern>%d %t %-5level %logger{25} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
 	<appender name="FILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
@@ -12,7 +28,8 @@
 		</filter>
 		<file>${log.path}/${project.name}.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${log.path}/_${project.name}-%d{yyyy-MM-dd}_${project.version}.log</fileNamePattern>
+			<fileNamePattern>${log.path}/_${project.name}-%d{yyyy-MM-dd}_${project.version}.log
+			</fileNamePattern>
 			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 		<encoder>
@@ -25,7 +42,8 @@
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
 			<evaluator> <!-- defaults to type ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
-				<expression>marker != null &amp;&amp; marker.getName().equals("GPSD_MESSAGE")</expression>
+				<expression>marker != null &amp;&amp;
+					marker.getName().equals("GPSD_MESSAGE")</expression>
 			</evaluator>
 			<OnMatch>ACCEPT</OnMatch>
 			<OnMismatch>DENY</OnMismatch>
@@ -33,7 +51,8 @@
 
 		<file>${log.path}/gpsd.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<fileNamePattern>${log.path}/_gpsd.log-%d{yyyy-MM-dd}.log</fileNamePattern>
+			<fileNamePattern>${log.path}/_gpsd.log-%d{yyyy-MM-dd}.log
+			</fileNamePattern>
 			<maxHistory>90</maxHistory>
 		</rollingPolicy>
 		<encoder>
@@ -46,7 +65,8 @@
 	<logger name="org.gpsd" level="DEBUG" />
 	<root level="ERROR">
 		<appender-ref ref="FILE" />
-<!-- 		<appender-ref ref="GPSD_LOG" /> -->
+		<appender-ref ref="STDOUT" />
+		<!-- <appender-ref ref="GPSD_LOG" /> -->
 	</root>
 
 </configuration>

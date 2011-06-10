@@ -43,7 +43,7 @@ public class CircularBuffer<T> {
      * Note that the list always has the size of the buffer,
      * no matter how many elements there actually are.
      *
-     * The ordering is also unpredictable.
+     * The ordering is defined by the comparator.
      *
      * @return contents
      */

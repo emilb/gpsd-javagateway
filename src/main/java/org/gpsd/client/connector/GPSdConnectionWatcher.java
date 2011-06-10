@@ -11,7 +11,7 @@ public class GPSdConnectionWatcher {
 	@Autowired
 	GPSd gpsd;
 	
-	@Scheduled(fixedDelay=1000)
+	@Scheduled(fixedDelay=5000)
 	public void checkConnection() {
 		if (!gpsd.isConnected()) {
 			System.out.println("Initializing gpsd connection");

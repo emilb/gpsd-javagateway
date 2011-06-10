@@ -57,6 +57,8 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	@Override
 	public void disconnect() {
 		running = false;
+		simulationData.clear();
+		responseQueue.clear();
 	}
 
 	@Override

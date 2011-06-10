@@ -64,7 +64,7 @@ public class GPSd {
 			return false;
 		
 		if (gpsdConnection.isConnected()) {
-			return ((System.currentTimeMillis() - timeForLastGPSdMessage) < 2000);
+			return ((System.currentTimeMillis() - timeForLastGPSdMessage) < 3000);
 		}
 		
 		return false;

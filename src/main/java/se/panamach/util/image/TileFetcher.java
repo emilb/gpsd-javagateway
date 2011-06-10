@@ -1,64 +1,49 @@
 package se.panamach.util.image;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
 
 import javax.imageio.ImageIO;
 
-import se.panamach.util.map.LonLatBoundingBox;
+import org.codehaus.httpcache4j.HTTPRequest;
+import org.codehaus.httpcache4j.HTTPResponse;
+import org.codehaus.httpcache4j.cache.HTTPCache;
+import org.codehaus.httpcache4j.cache.MemoryCacheStorage;
+import org.codehaus.httpcache4j.resolver.HTTPClientResponseResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import se.panamach.util.configuration.PanamaConfiguration;
+import se.panamach.util.map.LonLatBoundingBox;
 
 public class TileFetcher {
 
-	private static String TMP_IMAGE_DIR = "tmp/tiles";
-	
-	public static BufferedImage getTile(final int x, final int y, final int zoom) throws IOException {
-		String path = TMP_IMAGE_DIR + "/" + zoom + "/" + x;
-		File f = new File(path + "/" + y + ".png");
-		if (f.exists()) {
-			return ImageIO.read(f);
+	private static Logger log = LoggerFactory.getLogger(TileFetcher.class);
+
+	private static HTTPCache cache = new HTTPCache(new MemoryCacheStorage(),
+			HTTPClientResponseResolver.createMultithreadedInstance());
+
+	public static BufferedImage getTile(final int x, final int y, final int zoom)
+			throws IOException {
+		HTTPRequest request = new HTTPRequest(
+				URI.create(getTileUrl(x, y, zoom)));
+		HTTPResponse response = null;
+		try {
+			response = cache.doCachedRequest(request);
+			return ImageIO.read(response.getPayload().getInputStream());
+		} finally {
+			if (response != null) {
+				response.consume();
+			}
 		}
-		
-		return saveAndReturnTile(x, y, zoom);
 	}
-	
-	private static BufferedImage saveAndReturnTile(final int x, final int y, final int zoom) throws IOException {
-		String path = TMP_IMAGE_DIR + "/" + zoom + "/" + x;
-		File dir = new File(path);
-		dir.mkdirs();
-		        
-        URL url = new URL(getTileUrl(x, y, zoom));
-		InputStream is = url.openStream();
-		OutputStream os = new FileOutputStream(path + "/" + y + ".png");
 
-		byte[] b = new byte[2048];
-		int length;
-
-		while ((length = is.read(b)) != -1) {
-			os.write(b, 0, length);
-		}
-
-		is.close();
-		os.close();
-        
-	    return getTile(x, y, zoom);
-	}
-	
 	public static String getTileUrl(final int x, final int y, final int zoom) {
-		return ("http://tile.openstreetmap.org/" + zoom + "/" + x + "/" + y + ".png");
+		return (PanamaConfiguration.get().getString("tileServer") + zoom + "/"
+				+ x + "/" + y + ".png");
 	}
-	
+
 	public static String getTileUrl(final double lat, final double lon,
 			final int zoom) {
 		int xtile = getTileX(lat, lon, zoom);
@@ -73,32 +58,32 @@ public class TileFetcher {
 
 	public static double getTileXFraction(final double lat, final double lon,
 			final int zoom) {
-		
+
 		double val = (lon + 180) / 360 * (1 << zoom);
 		return val - Math.floor(val);
 	}
-	
+
 	public static int getTileY(final double lat, final double lon,
 			final int zoom) {
-		
-		return (int) Math
-			.floor((1 - Math.log(Math.tan(Math.toRadians(lat)) + 1
+
+		return (int) Math.floor((1 - Math.log(Math.tan(Math.toRadians(lat)) + 1
 				/ Math.cos(Math.toRadians(lat)))
 				/ Math.PI)
 				/ 2 * (1 << zoom));
 	}
-	
+
 	public static double getTileYFraction(final double lat, final double lon,
 			final int zoom) {
-		
+
 		double val = (1 - Math.log(Math.tan(Math.toRadians(lat)) + 1
 				/ Math.cos(Math.toRadians(lat)))
 				/ Math.PI)
 				/ 2 * (1 << zoom);
 		return val - Math.floor(val);
 	}
-	
-	public static LonLatBoundingBox tile2boundingBox(final int x, final int y, final int zoom) {
+
+	public static LonLatBoundingBox tile2boundingBox(final int x, final int y,
+			final int zoom) {
 		LonLatBoundingBox bb = new LonLatBoundingBox();
 		bb.north = tile2lat(y, zoom);
 		bb.south = tile2lat(y + 1, zoom);
@@ -116,5 +101,4 @@ public class TileFetcher {
 		return Math.toDegrees(Math.atan(Math.sinh(n)));
 	}
 
-	
 }

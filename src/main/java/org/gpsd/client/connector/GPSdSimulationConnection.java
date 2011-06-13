@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -47,8 +48,8 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	@Override
 	public void connect(String host, int port) throws IOException {
 
-		populateSimulationData();
-		
+//		populateSimulationDataText("/birkacruises_gps_simulation.log");
+		populateSimulationDataZip("/STO-RIGA.log.zip");
 		running = true;
 		t = new Thread(this);
 		t.start();
@@ -192,11 +193,25 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		return sb.toString();
 	}
 	
-	private void populateSimulationData() {
+	private void populateSimulationDataZip(String resource) throws IOException {
+		ZipInputStream zis = new ZipInputStream(GPSdSimulationConnection.class.getResourceAsStream(resource));
+		zis.getNextEntry();
+		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
+		populateSimulationData(reader);
+		zis.closeEntry();
+		zis.close();
+	}
+	
+	private void populateSimulationDataText(String resource) {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(GPSdSimulationConnection.class.getResourceAsStream(resource)));
+		populateSimulationData(reader);
+	}
+
+	private void populateSimulationData(BufferedReader reader) {
 		simulationData = new ArrayList<String>();
 		lineNumber = 0;
 		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(GPSdSimulationConnection.class.getResourceAsStream("/birkacruises_gps_simulation.log")));
 		try {
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -207,7 +222,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public void setTimeFactor(int timefactor) {
 		this.timeFactor = timefactor;
 	}

@@ -1,0 +1,68 @@
+ToDo gpsd-javagateway
+
+GENERELLT
+- Få ordning på loggning
+- Fixa tester och skapa fler!
+- Dokumentera koden
+- Skriv README med generella instruktioner
+	- bygge
+	- köra lokalt
+	- kundinstallation
+	- kod och komponenter, allmän struktur och beroenden (gpsd etc)
+	- loggning
+	- tile-generering
+	- konfigurering: /etc/panama.conf
+	
+- Dokumentera bygg och deployrutiner
+    - tagga för varje kundspecifikt bygge
+- Lägg in bash-scripten för systembyggen
+X Skaffa ett repo att lägga grejerna på
+- Sätt upp bygge i cloudbees?
+- Byt till Spring 3.1 och nya konfigureringen?
+- Gör klart installationsskriptet för java/jetty osv
+	- service start för jetty
+	- Är det jetty som ska användas?
+	- 
+
+SIMULERING
+- Bryt ut simuleringsgrejerna bättre för att minska risken att de går i produktion
+
+
+GPS SERVICE
+- Få ordning på filtrering m.a.p GPSd???Connection för bygge mot demo eller prod
+
+
+REST SERVICE
+- Bättre felhantering och felsvar
+- Status-respons för hela miljön (gspd anslutning, minne, hårddisk, cachar etc)
+- 
+
+UTIL
+- filtrering på tile-url, tmp path
+X Använd Java HttpCache4J: http://httpcache4j.codehaus.org/getting_started.html
+- filtrering på färger, strecktjocklek etc på kartan
+- lägg till openstreetmap licensinfo längst ner till höger
+- 
+
+KARTGENERERING
+- undersök hur svårt det är att få till en egen look på kartorna
+- om en tile ej kan skapas så visa en default-bild istället
+
+WEB
+- sida för systemunderhåll
+    - rensa cachar
+    - manuell återanslutning till GPSdaemon
+    - startsida med mer info, kartdemo
+- javascript som automatiskt laddar om en kartbild med aktuell position
+- slippy map med aktuell rutt inlagd(?)
+- slippy map med zoom och aktuell rutt som overlay. Visa dessutom:
+    - aktuell tid enligt GPS
+    - hastighet, h.ö.h osv (i princip samma sak som gpsmon)
+    - möjlighet att:
+        - ändra simuleringsfart
+        - starta om simulering
+        - pausa simulering, backa/spola fram i tidslinjen
+        
+
+
+

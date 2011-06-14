@@ -12,10 +12,12 @@ GENERELLT
 	- loggning
 	- tile-generering
 	- konfigurering: /etc/panama.conf
-	
+- Rensa i /src/main/resources mappen 
+	X (logfiler, htmlfiler etc)
+	X simuleringsfilerna på annat ställe?
 - Dokumentera bygg och deployrutiner
     - tagga för varje kundspecifikt bygge
-- Lägg in bash-scripten för systembyggen
+X Lägg in bash-scripten för systembyggen
 X Skaffa ett repo att lägga grejerna på
 - Sätt upp bygge i cloudbees?
 - Byt till Spring 3.1 och nya konfigureringen?
@@ -29,7 +31,7 @@ SIMULERING
 
 
 GPS SERVICE
-- Få ordning på filtrering m.a.p GPSd???Connection för bygge mot demo eller prod
+X Få ordning på filtrering m.a.p GPSd???Connection för bygge mot demo eller prod
 
 
 REST SERVICE

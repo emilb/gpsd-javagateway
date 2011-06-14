@@ -48,8 +48,8 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	@Override
 	public void connect(String host, int port) throws IOException {
 
-//		populateSimulationDataText("/birkacruises_gps_simulation.log");
-		populateSimulationDataZip("/STO-RIGA.log.zip");
+//		populateSimulationDataText("/simulations/STO-MARIEHAMN.sim");
+		populateSimulationDataZip("/simulations/STO-RIGA-STO.sim.zip");
 		running = true;
 		t = new Thread(this);
 		t.start();

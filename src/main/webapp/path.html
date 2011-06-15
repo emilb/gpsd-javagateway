@@ -1,0 +1,153 @@
+<html>
+<head>
+	<title>Simple OSM GPX Track</title>
+	
+	<script src="js/jquery-1.6.1.min.js"></script>
+	<script src="js/jquery.timer-0.8.js"></script>
+	
+	<!-- bring in the OpenLayers javascript library
+		 (here we bring it from the remote site, but you could
+		 easily serve up this javascript yourself) -->
+	<script src="js/OpenLayers.js"></script>
+	<!-- bring in the OpenStreetMap OpenLayers layers.
+		 Using this hosted file will make sure we are kept up
+		 to date with any necessary changes -->
+	<script src="js/OpenStreetMap.js"></script>
+ 
+	<script type="text/javascript">
+		// Start position for the map (hardcoded here for simplicity,
+		// but maybe you want to get this from the URL params)
+		var lat=59.319674
+		var lon=18.082038
+		var zoom=9
+ 
+		var map; //complex object of type OpenLayers.Map
+ 		var pathLayer = null;
+ 		var markerLayer = null;
+ 		
+		function initMap() {
+			map = new OpenLayers.Map ("map", {
+				controls:[
+					new OpenLayers.Control.Navigation(),
+					new OpenLayers.Control.PanZoomBar(),
+					new OpenLayers.Control.LayerSwitcher(),
+					new OpenLayers.Control.Attribution()],
+				maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+				maxResolution: 156543.0399,
+				numZoomLevels: 19,
+				units: 'm',
+				projection: new OpenLayers.Projection("EPSG:900913"),
+				displayProjection: new OpenLayers.Projection("EPSG:4326")
+			} );
+ 
+			// Define the map layer
+			// Here we use a predefined layer that will be kept up to date with URL changes
+			layerMapnik = new OpenLayers.Layer.OSM.Mapnik("Mapnik");
+			map.addLayer(layerMapnik);
+			
+			// layerTilesAtHome = new OpenLayers.Layer.OSM.Osmarender("Osmarender");
+			// map.addLayer(layerTilesAtHome);
+			// layerCycleMap = new OpenLayers.Layer.OSM.CycleMap("CycleMap");
+			// map.addLayer(layerCycleMap);
+			
+ 
+			updatePath();
+ 			updateMarker();
+			
+		}
+		
+		function updatePath() {
+			
+			if (pathLayer != null) {
+				//pathLayer.display(false);
+			}
+			
+			
+			// Add the Layer with the GPX Track
+			var newPathLayer = new OpenLayers.Layer.Vector(
+				"Current Path", {
+				strategies: [
+				new OpenLayers.Strategy.Fixed(),
+				new OpenLayers.Strategy.Refresh({
+					force: true,
+					interval: 500
+				})],
+				
+				protocol: new OpenLayers.Protocol.HTTP({
+                        url: "resource/path/all",
+                        format: new OpenLayers.Format.GPX()
+                    }),
+				style: {strokeColor: "red", strokeWidth: 5, strokeOpacity: 0.5},
+				projection: new OpenLayers.Projection("EPSG:4326")
+			});
+			
+			newPathLayer.events.register("loadstart", newPathLayer, getLongLat);
+			map.addLayer(newPathLayer);
+			pathLayer = newPathLayer;
+			
+		}
+		
+		function getLongLat() {
+			$.ajax({
+				type: "GET",
+				url: "resource/location/current",
+				dataType: "xml",
+				success: parseXml
+			});
+		}
+
+		function parseXml(xml) {
+			lat = $(xml).find("lat").text();
+			lon = $(xml).find("long").text();
+			updateMarker();
+		}
+		
+		function updateMarker() {
+		
+			if (markerLayer != null) {
+				markerLayer.destroy();
+			}
+		
+			var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+			map.setCenter(lonLat);
+ 
+			var size = new OpenLayers.Size(21, 25);
+			var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+			
+			var icon = new OpenLayers.Icon('http://www.openstreetmap.org/openlayers/img/marker.png',size,offset);
+			markerLayer = new OpenLayers.Layer.Markers("Markers");
+			markerLayer.addMarker(new OpenLayers.Marker(lonLat, icon));
+			
+			map.addLayer(markerLayer);
+		}
+		
+		var updateTimer;
+		function initUpdateTimer() {
+			updateTimer = $.timer(
+				function() {
+					updatePath();
+					updateMarker();
+				},
+				1000,
+				true
+			);
+		}
+		
+	</script>
+ 
+</head>
+<body>
+	<!-- define a DIV into which the map will appear. Make it take up the whole window -->
+	<div style="width:100%; height:100%" id="map"></div>
+</body>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		// do stuff when DOM is ready
+		initMap();
+		//initUpdateTimer();
+	});
+</script>
+
+
+</html>

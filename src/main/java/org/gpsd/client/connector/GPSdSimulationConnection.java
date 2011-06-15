@@ -199,8 +199,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 		populateSimulationData(reader);
-		zis.closeEntry();
-		zis.close();
+		
 	}
 	
 	private void populateSimulationDataText(String resource) {

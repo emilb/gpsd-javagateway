@@ -55,7 +55,10 @@ WEB
     - rensa cachar
     - manuell återanslutning till GPSdaemon
     - startsida med mer info, kartdemo
-- javascript som automatiskt laddar om en kartbild med aktuell position
+X javascript som automatiskt laddar om en kartbild med aktuell position
+	- stoppa / starta automatisk repositionering
+	- hur få in konfigurering i appen i javascripten?
+	- hur lägga på panel med info om hastighet, tid, sträcka färdats etc?
 - slippy map med aktuell rutt inlagd(?)
 - slippy map med zoom och aktuell rutt som overlay. Visa dessutom:
     - aktuell tid enligt GPS

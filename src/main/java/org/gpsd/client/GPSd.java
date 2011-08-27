@@ -157,6 +157,7 @@ public class GPSd {
 		
 		else if (gpsdMsg instanceof TPV) {
 			listenerManager.onTPV((TPV)gpsdMsg);
+//			System.out.println("notified listeners of tpv");
 		}
 		
 		/*

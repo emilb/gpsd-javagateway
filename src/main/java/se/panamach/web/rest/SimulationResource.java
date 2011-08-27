@@ -24,7 +24,7 @@ public class SimulationResource {
 	@GET
 	@Path("/timefactor/{timefactor}")
 	@Produces({MediaType.TEXT_PLAIN})
-	public String getCurrentLocation(
+	public String setSimulationSpeed(
 			@PathParam("timefactor") int timefactor) throws IOException {
 		
 		GPSdConnection connection = gpsd.getGPSdConnection();
@@ -41,4 +41,21 @@ public class SimulationResource {
 		return "Not in simulation mode";
 	}
 	
+	@GET
+	@Path("/timefactor")
+	@Produces({MediaType.TEXT_PLAIN})
+	public String getSimulationSpeed() throws IOException {
+		
+		GPSdConnection connection = gpsd.getGPSdConnection();
+		if (connection == null) {
+			return "Not connected to GPS device";
+		}
+		
+		if (connection instanceof GPSdSimulationConnection) {
+			GPSdSimulationConnection simConnection = (GPSdSimulationConnection) connection;
+			return "" + simConnection.getTimeFactor();
+		}
+		
+		return "Not in simulation mode";
+	}
 }

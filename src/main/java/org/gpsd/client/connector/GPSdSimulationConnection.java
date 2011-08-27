@@ -53,6 +53,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 		running = true;
 		t = new Thread(this);
 		t.start();
+		System.out.println("Started thread for simulation");
 	}
 
 	@Override
@@ -117,6 +118,7 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 				gpsd.messageReceived(response);
 				tryToSleep((long)(1000.0 / (double)timeFactor));
 				currentSimulationTime += 1000L;
+//				System.out.println(".");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -140,6 +142,10 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	
 	
 	private String getNextTPV() throws IOException {
+		if (lineNumber >= simulationData.size())
+			throw new IOException("End of simulation reached");
+		
+		// This is for reversible simulations, won't use this anymore
 		if (lineNumber >= simulationData.size() && simulationForward) {
 			simulationForward = false;
 			lineNumber = simulationData.size() - 1;
@@ -224,5 +230,9 @@ public class GPSdSimulationConnection implements Runnable, GPSdConnection {
 	
 	public void setTimeFactor(int timefactor) {
 		this.timeFactor = timefactor;
+	}
+	
+	public int getTimeFactor() {
+		return this.timeFactor;
 	}
 }

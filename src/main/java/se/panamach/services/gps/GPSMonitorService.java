@@ -25,6 +25,7 @@ public class GPSMonitorService extends GPSdSimpleListener {
 	
 	@Override
 	public void onTPV(TPV tpvEvent) {
+//		System.out.println("got a tpvevent");
 		TimePositionVelocity tpv = TPVConverter.getTimePositionVelocity(tpvEvent);
 		positionHistory.registerPosition(tpv);
 	}

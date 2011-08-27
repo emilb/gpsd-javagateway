@@ -86,6 +86,7 @@ public class PositionHistoryService {
 	}
 
 	public List<TimePositionVelocity> getTravelHistory(double minDistanceBetweenLogs) {
+//		System.out.println("getting travel history: " + this);
 		List<TimePositionVelocity> history = last24HoursPositionsPer30Seconds.getAll();
 		history = truncateHistoryFromLastTimeStatic(history);
 		
@@ -158,6 +159,8 @@ public class PositionHistoryService {
 	}
 	
 	public void registerPosition(TimePositionVelocity tpv) {
+//		System.out.println("registering postion " + this);
+//		System.out.println(tpv.time);
 		registerPosition(tpv, THIRTY_SECONDS, last24HoursPositionsPer30Seconds);
 		registerPosition(tpv, FIVE_MINUTES, last100PositionsPerFiveMinutes);
 		registerPosition(tpv, ONE_HOUR, last100PositionsPerHour);

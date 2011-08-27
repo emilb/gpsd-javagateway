@@ -2,24 +2,28 @@
 <head>
 	<title>Simple OSM GPX Track</title>
 	
+	<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.13.custom.css" rel="stylesheet" />	
+
 	<script src="js/jquery-1.6.1.min.js"></script>
-	<script src="js/jquery.timer-0.8.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.8.13.custom.min.js"></script>
 	
 	<!-- bring in the OpenLayers javascript library
 		 (here we bring it from the remote site, but you could
 		 easily serve up this javascript yourself) -->
 	<script src="js/OpenLayers.js"></script>
+	
 	<!-- bring in the OpenStreetMap OpenLayers layers.
 		 Using this hosted file will make sure we are kept up
 		 to date with any necessary changes -->
 	<script src="js/OpenStreetMap.js"></script>
  
 	<script type="text/javascript">
-		// Start position for the map (hardcoded here for simplicity,
-		// but maybe you want to get this from the URL params)
-		var lat=59.319674
-		var lon=18.082038
+		var lat=0
+		var lon=0
 		var zoom=9
+ 		var centerOnCurrentPosition = true;
+
+		getLongLat();
  
 		var map; //complex object of type OpenLayers.Map
  		var pathLayer = null;
@@ -50,19 +54,15 @@
 			// layerCycleMap = new OpenLayers.Layer.OSM.CycleMap("CycleMap");
 			// map.addLayer(layerCycleMap);
 			
+			var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+			map.setCenter(lonLat, zoom);
  
 			updatePath();
  			updateMarker();
-			
 		}
 		
 		function updatePath() {
-			
-			if (pathLayer != null) {
-				//pathLayer.display(false);
-			}
-			
-			
+					
 			// Add the Layer with the GPX Track
 			var newPathLayer = new OpenLayers.Layer.Vector(
 				"Current Path", {
@@ -81,7 +81,7 @@
 				projection: new OpenLayers.Projection("EPSG:4326")
 			});
 			
-			newPathLayer.events.register("loadstart", newPathLayer, getLongLat);
+			newPathLayer.events.register("loadend", newPathLayer, updateMarker);
 			map.addLayer(newPathLayer);
 			pathLayer = newPathLayer;
 			
@@ -99,17 +99,21 @@
 		function parseXml(xml) {
 			lat = $(xml).find("lat").text();
 			lon = $(xml).find("long").text();
-			updateMarker();
 		}
 		
 		function updateMarker() {
+			updateStatus();
+			initValues();
+			getLongLat();
 		
 			if (markerLayer != null) {
 				markerLayer.destroy();
 			}
 		
 			var lonLat = new OpenLayers.LonLat(lon, lat).transform(new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
-			map.setCenter(lonLat);
+			
+			if (centerOnCurrentPosition)
+				map.setCenter(lonLat);
  
 			var size = new OpenLayers.Size(21, 25);
 			var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
@@ -121,31 +125,131 @@
 			map.addLayer(markerLayer);
 		}
 		
-		var updateTimer;
-		function initUpdateTimer() {
-			updateTimer = $.timer(
-				function() {
-					updatePath();
-					updateMarker();
-				},
-				1000,
-				true
-			);
+		function updateStatus() {
+			$.ajax({
+				type: "GET",
+				url: "resource/location/status",
+				dataType: "xml",
+				success: function(xml) {
+					$("#statusLatitude").val($(xml).find("lat").text());
+					$("#statusLongitude").val($(xml).find("long").text());
+					$("#statusTrack").val($(xml).find("track").text());
+					$("#statusSpeed").val($(xml).find("speed").text());
+				}
+			});
 		}
 		
+		function initValues() {
+			//console.log("initValues");
+			$.ajax({
+				type: "GET",
+				url: "resource/simulation/timefactor",
+				dataType: "text",
+				success: function(val) {
+					//console.log(val);
+					$("#slider").slider("value", val);
+				}
+			});
+		}
+		
+		function setSimulationSpeed(value) {
+			$.ajax({
+				type: "GET",
+				url: "resource/simulation/timefactor/" + value,
+				dataType: "text",
+				success: function(val) {
+					console.log(val);
+				}
+			});
+		}
 	</script>
  
 </head>
 <body>
 	<!-- define a DIV into which the map will appear. Make it take up the whole window -->
-	<div style="width:100%; height:100%" id="map"></div>
+	<div>
+		<div id="map"></div>
+		<!-- Tabs -->
+		<div id="tabs">
+			<ul>
+				<li><a href="#simTab">Simulering</a></li>
+				<li><a href="#statusTab">Status</a></li>
+			</ul>
+			<div id="simTab">
+				<p>
+					<label for="simSpeed">Simuleringshastighet:</label>
+					<input type="text" id="simSpeed" style="border:0; color:#f6931f; font-weight:bold; background:#eee" />
+				</p>
+				<div id="slider"></div>
+				
+				<p>
+					<label for="checkbox">Centrera karta p&aring; position:</label>
+					<input type="checkbox" id="centerMapOnPosition" checked="checked"/>
+				</p>
+			</div>
+			<div id="statusTab">
+				<table>
+					<tr>
+						<td>
+							<label for="statusLongitude">Longitud:</label>
+							<input type="text" id="statusLongitude" style="border:0; color:#f6931f; font-weight:bold; background:#eee" />
+						</td>
+						<td>
+							<label for="statusLatitude">Latitud:</label>
+							<input type="text" id="statusLatitude" style="border:0; color:#f6931f; font-weight:bold; background:#eee" />	
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<label for="statusSpeed">Hastighet (m/s):</label>
+							<input type="text" id="statusSpeed" style="border:0; color:#f6931f; font-weight:bold; background:#eee" />
+						</td>
+						<td>
+							<label for="statusTrack">Riktning (grader):</label>
+							<input type="text" id="statusTrack" style="border:0; color:#f6931f; font-weight:bold; background:#eee" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+
 </body>
 
 <script type="text/javascript">
 	$(document).ready(function() {
+		
 		// do stuff when DOM is ready
 		initMap();
-		//initUpdateTimer();
+		
+		// Tabs
+		$('#tabs').tabs();
+		
+		// Slider
+		$('#slider').slider({
+			min: 1,
+			max: 1500,
+			step: 1,
+			slide: function(event, ui) {
+				$("#simSpeed").val(ui.value);
+			},
+			change: function(event, ui) {
+				$("#simSpeed").val(ui.value);
+				//setSimulationSpeed(ui.value);
+			},
+			stop: function(event, ui) {
+				$("#simSpeed").val(ui.value);
+				setSimulationSpeed(ui.value);
+			}
+			
+		});
+		
+		// Center map on position checkbox
+		$("#centerMapOnPosition").change(function() {
+			centerOnCurrentPosition = $("#centerMapOnPosition").is(':checked');
+		});
+		
+		initValues();
 	});
 </script>
 

@@ -2,15 +2,15 @@
 <head>
 	<title>Simple OSM GPX Track</title>
 	
-	<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.13.custom.css" rel="stylesheet" />	
+	<link type="text/css" href="css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />	
 
-	<script src="js/jquery-1.6.1.min.js"></script>
-	<script type="text/javascript" src="js/jquery-ui-1.8.13.custom.min.js"></script>
+	<script src="js/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
 	
 	<!-- bring in the OpenLayers javascript library
 		 (here we bring it from the remote site, but you could
 		 easily serve up this javascript yourself) -->
-	<script src="js/OpenLayers.js"></script>
+	<script src="js/OpenLayers-2.11.js"></script>
 	
 	<!-- bring in the OpenStreetMap OpenLayers layers.
 		 Using this hosted file will make sure we are kept up
@@ -33,9 +33,9 @@
 			map = new OpenLayers.Map ("map", {
 				controls:[
 					new OpenLayers.Control.Navigation(),
-					new OpenLayers.Control.PanZoomBar(),
-					new OpenLayers.Control.LayerSwitcher(),
-					new OpenLayers.Control.Attribution()],
+                    new OpenLayers.Control.PanZoomBar(),
+                    new OpenLayers.Control.ScaleLine({geodesic: true}),
+                    new OpenLayers.Control.Attribution()],
 				maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
 				maxResolution: 156543.0399,
 				numZoomLevels: 19,

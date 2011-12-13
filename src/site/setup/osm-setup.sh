@@ -7,8 +7,23 @@
 
 TILE_HOST="tile.panama.se"
 TILE_CONTEXT="tiles"
-#OSM_IMPORT_FILE="scandinavia.osm.bz2"
-OSM_IMPORT_FILE="planet-latest.osm.bz2"
+OSM_IMPORT_FILE="scandinavia.osm.bz2"
+#OSM_IMPORT_FILE="planet-latest.osm.bz2"
+
+UBUNTU_VERSION=`lsb_release -s -r`
+echo "Ubuntu ver: $UBUNTU_VERSION"
+
+if [ $UBUNTU_VERSION = '11.04' ]; then
+    PSQL_VERSION="8.4"
+elif [ $UBUNTU_VERSION = '11.10' ]; then
+    PSQL_VERSION="9.1"
+else
+    echo "This script is not prepared for Ubuntu version $UBUNTU_VERSION"
+    exit -1
+fi
+
+echo "Will use Postgresql ver: $PSQL_VERSION"
+
 
 #####################################################################
 #
@@ -89,11 +104,11 @@ fi
 # Install all needed packages and utilites
 #####################################################################
 echo "Installing general utilities..."
-sudo apt-get -qq -y install subversion autoconf screen htop unzip emacs
+sudo apt-get -qq -y install subversion git-core autoconf screen htop unzip emacs
 
 echo "Installing postGiS database"
-sudo apt-get -qq -y install postgresql-8.4-postgis postgresql-contrib-8.4
-sudo apt-get -qq -y install postgresql-server-dev-8.4
+sudo apt-get -qq -y install postgresql-$PSQL_VERSION-postgis postgresql-contrib-$PSQL_VERSION
+sudo apt-get -qq -y install postgresql-server-dev-$PSQL_VERSION
 sudo apt-get -qq -y install build-essential libxml2-dev libtool
 sudo apt-get -qq -y install libgeos-dev libpq-dev libbz2-dev proj
 
@@ -118,7 +133,7 @@ sudo apt-get -qq -y install apache2 apache2-threaded-dev apache2-mpm-prefork apa
 #####################################################################
 echo "Preparing directory structure"
 cd ~
-mkdir src bin planet
+mkdir -p src bin planet
 
 #####################################################################
 # Get the planet file for import, defined above.
@@ -148,8 +163,8 @@ make
 #   autovacuum = off
 #####################################################################
 echo "Configuring PostGIS database"
-sudo cp /etc/postgresql/8.4/main/postgresql.conf /etc/postgresql/8.4/main/postgresql.conf.bak
-cat /etc/postgresql/8.4/main/postgresql.conf | sed 's/^.*shared_buffers.*$/shared_buffers = 128MB/' > postgresql.conf-new
+sudo cp /etc/postgresql/$PSQL_VERSION/main/postgresql.conf /etc/postgresql/$PSQL_VERSION/main/postgresql.conf.bak
+cat /etc/postgresql/$PSQL_VERSION/main/postgresql.conf | sed 's/^.*shared_buffers.*$/shared_buffers = 128MB/' > postgresql.conf-new
 cat postgresql.conf-new | sed 's/^.*checkpoint_segments.*$/checkpoint_segments = 20/' > postgresql.conf-new2
 cat postgresql.conf-new2 | sed 's/^.*autovacuum =.*$/autovacuum = off/' > postgresql.conf-new
 if ( grep 'maintenance_work_mem = 256MB' postgresql.conf-new ); then
@@ -158,7 +173,7 @@ else
     echo "maintenance_work_mem = 256MB" >> postgresql.conf-new
 fi
 
-sudo cp postgresql.conf-new /etc/postgresql/8.4/main/postgresql.conf
+sudo cp postgresql.conf-new /etc/postgresql/$PSQL_VERSION/main/postgresql.conf
 rm postgresql.conf-new
 rm postgresql.conf-new2
 
@@ -182,12 +197,16 @@ echo "Setting up database user and tables"
 echo "$USER" > /tmp/curr_user
 sudo su - postgres -c 'CURR_USER=`cat /tmp/curr_user`; createuser -s $CURR_USER'
 sudo su - postgres -c 'CURR_USER=`cat /tmp/curr_user`; createdb -E UTF8 -O $CURR_USER gis'
-sudo su - postgres -c 'createlang plpgsql gis'
+if [ $PSQL_VERSION = '8.4' ]; then
+	sudo su - postgres -c 'createlang plpgsql gis'
+fi
 rm /tmp/curr_user
 
-psql -f /usr/share/postgresql/8.4/contrib/postgis-1.5/postgis.sql -d gis
+psql -f /usr/share/postgresql/$PSQL_VERSION/contrib/postgis-1.5/postgis.sql -d gis
 echo "ALTER TABLE geometry_columns OWNER TO $USER; ALTER TABLE spatial_ref_sys OWNER TO $USER;" | psql -d gis
-psql -f /usr/share/postgresql/8.4/contrib/_int.sql -d gis
+if [ $PSQL_VERSION = '8.4' ]; then
+	psql -f /usr/share/postgresql/$PSQL_VERSION/contrib/_int.sql -d gis
+fi
 psql -f ~/bin/osm2pgsql/900913.sql -d gis
 
 #####################################################################
@@ -195,8 +214,11 @@ psql -f ~/bin/osm2pgsql/900913.sql -d gis
 #####################################################################
 echo "Checkout and build Mapnik"
 cd ~/src
-svn co http://svn.mapnik.org/tags/release-0.7.1/ mapnik
-cd mapnik
+#git clone https://github.com/mapnik/mapnik.git
+#svn co http://svn.mapnik.org/tags/release-0.7.1/ mapnik
+wget https://github.com/mapnik/mapnik/tarball/release-0.7.1
+tar zxvf release-0.7.1
+cd mapnik*
 python scons/scons.py configure INPUT_PLUGINS=all OPTIMIZATION=3 SYSTEM_FONTS=/usr/share/fonts/truetype/
 python scons/scons.py
 sudo python scons/scons.py install

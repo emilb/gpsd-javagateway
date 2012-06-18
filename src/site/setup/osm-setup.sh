@@ -13,10 +13,12 @@ OSM_IMPORT_FILE="scandinavia.osm.bz2"
 UBUNTU_VERSION=`lsb_release -s -r`
 echo "Ubuntu ver: $UBUNTU_VERSION"
 
-if [ $UBUNTU_VERSION = '11.04' ]; then
+if [ $UBUNTU_VERSION = '10.04' ]; then
     PSQL_VERSION="8.4"
+    LIBBOOST_VERSION="1.40"
 elif [ $UBUNTU_VERSION = '11.10' ]; then
     PSQL_VERSION="9.1"
+    LIBBOOST_VERSION="1.42"
 else
     echo "This script is not prepared for Ubuntu version $UBUNTU_VERSION"
     exit -1
@@ -114,10 +116,10 @@ sudo apt-get -qq -y install libgeos-dev libpq-dev libbz2-dev proj
 
 echo "Installing dependencies for Mapnik"
 sudo apt-get -qq -y install libltdl3-dev libpng12-dev libtiff4-dev libicu-dev
-sudo apt-get -qq -y install libboost-python1.42-dev python-cairo-dev python-nose
-sudo apt-get -qq -y install libboost1.42-dev libboost-filesystem1.42-dev
-sudo apt-get -qq -y install libboost-iostreams1.42-dev libboost-regex1.42-dev libboost-thread1.42-dev
-sudo apt-get -qq -y install libboost-program-options1.42-dev libboost-python1.42-dev
+sudo apt-get -qq -y install libboost-python$LIBBOOST_VERSION-dev python-cairo-dev python-nose
+sudo apt-get -qq -y install libboost$LIBBOOST_VERSION-dev libboost-filesystem$LIBBOOST_VERSION-dev
+sudo apt-get -qq -y install libboost-iostreams$LIBBOOST_VERSION-dev libboost-regex$LIBBOOST_VERSION-dev libboost-thread$LIBBOOST_VERSION-dev
+sudo apt-get -qq -y install libboost-program-options$LIBBOOST_VERSION-dev libboost-python$LIBBOOST_VERSION-dev
 sudo apt-get -qq -y install libfreetype6-dev libcairo2-dev libcairomm-1.0-dev
 sudo apt-get -qq -y install libgeotiff-dev libtiff4 libtiff4-dev libtiffxx0c2
 sudo apt-get -qq -y install libsigc++-dev libsigc++0c2 libsigx-2.0-2 libsigx-2.0-dev
@@ -188,7 +190,11 @@ sudo service procps start
 # Restarting postgresql so that changes are in effect.
 #####################################################################
 echo "Restarting postgresql"
-sudo /etc/init.d/postgresql restart
+if [ $PSQL_VERSION = '8.4' ]; then
+	sudo /etc/init.d/postgresql-8.4 restart
+else
+	sudo /etc/init.d/postgresql restart
+fi
 
 #####################################################################
 # Add current user as postgres user and setup GIS tables
@@ -202,7 +208,13 @@ if [ $PSQL_VERSION = '8.4' ]; then
 fi
 rm /tmp/curr_user
 
-psql -f /usr/share/postgresql/$PSQL_VERSION/contrib/postgis-1.5/postgis.sql -d gis
+if [ $PSQL_VERSION = '8.4' ]; then
+	psql -f /usr/share/postgresql/$PSQL_VERSION/contrib/postgis.sql -d gis
+else
+	psql -f /usr/share/postgresql/$PSQL_VERSION/contrib/postgis-1.5/postgis.sql -d gis
+fi
+
+
 echo "ALTER TABLE geometry_columns OWNER TO $USER; ALTER TABLE spatial_ref_sys OWNER TO $USER;" | psql -d gis
 if [ $PSQL_VERSION = '8.4' ]; then
 	psql -f /usr/share/postgresql/$PSQL_VERSION/contrib/_int.sql -d gis
